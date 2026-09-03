@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Engineering — Principal-Level Reference</title>
+<style>
+  :root{
+    --canvas:#2d2a2e;
+    --surface:#353236;
+    --surface-2:#3e3a3f;
+    --line:#4a464b;
+    --cyan:#78dce8;
+    --green:#a9dc76;
+    --pink:#ff6188;
+    --yellow:#ffd866;
+    --orange:#fc9867;
+    --text:#fcfcfa;
+    --text-dim:#a8a2a8;
+    --mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--canvas);color:var(--text);font-family:var(--sans);}
+  body{display:flex;min-height:100vh;}
+
+  /* ---------- Sidebar ---------- */
+  #sidebar{
+    width:250px;flex-shrink:0;background:#262326;border-right:1px solid var(--line);
+    padding:20px 14px;position:sticky;top:0;height:100vh;overflow-y:auto;
+  }
+  .brand{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--text-dim);margin-bottom:2px;}
+  .brand-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:18px;line-height:1.3;}
+  .brand-title span{color:var(--cyan);}
+  #search{
+    width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);
+    padding:9px 10px;border-radius:6px;font-family:var(--sans);font-size:13px;margin-bottom:16px;
+  }
+  #search:focus{outline:none;border-color:var(--cyan);}
+  .nav-item{
+    display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:6px;cursor:pointer;
+    font-size:13.5px;color:var(--text-dim);margin-bottom:2px;transition:background .12s,color .12s;
+  }
+  .nav-item:hover{background:var(--surface);color:var(--text);}
+  .nav-item.active{background:var(--surface-2);color:var(--cyan);}
+  .nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .mode-toggle{
+    margin-top:18px;padding-top:16px;border-top:1px solid var(--line);
+  }
+  .mode-btn{
+    width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text-dim);
+    padding:9px 10px;border-radius:6px;font-family:var(--mono);font-size:11.5px;cursor:pointer;
+    margin-bottom:6px;text-align:left;transition:.12s;
+  }
+  .mode-btn:hover{border-color:var(--cyan);color:var(--text);}
+  .mode-btn.on{background:rgba(120,220,232,.12);border-color:var(--cyan);color:var(--cyan);}
+
+  /* ---------- Main ---------- */
+  #main{flex:1;padding:34px 44px 80px;max-width:880px;}
+  #hero{margin-bottom:34px;}
+  #hero h1{font-size:26px;margin:0 0 6px;font-weight:700;}
+  #hero p{color:var(--text-dim);font-size:14px;margin:0;max-width:620px;line-height:1.55;}
+
+  .section{margin-bottom:46px;scroll-margin-top:24px;}
+  .section-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid var(--line);}
+  .section-head h2{font-size:18px;margin:0;font-weight:700;}
+  .section-head .tag{font-family:var(--mono);font-size:10.5px;color:var(--canvas);padding:2px 7px;border-radius:4px;font-weight:700;}
+
+  .card{
+    background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-bottom:10px;overflow:hidden;
+  }
+  .card-q{
+    padding:13px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;
+    font-size:14.5px;font-weight:600;
+  }
+  .card-q:hover{background:var(--surface-2);}
+  .card-q .chev{color:var(--text-dim);font-size:12px;transition:transform .15s;flex-shrink:0;}
+  .card.open .card-q .chev{transform:rotate(90deg);color:var(--cyan);}
+  .card-a{
+    max-height:0;overflow:hidden;transition:max-height .22s ease;
+  }
+  .card.open .card-a{max-height:2200px;}
+  .card-a-inner{padding:2px 16px 16px;font-size:13.6px;line-height:1.62;color:#e6e1e6;}
+  .card-a-inner p{margin:0 0 10px;}
+  .card-a-inner ul{margin:0 0 10px;padding-left:19px;}
+  .card-a-inner li{margin-bottom:6px;}
+  .card-a-inner li b, .card-a-inner b{color:var(--cyan);font-weight:600;}
+  .card-a-inner code{
+    font-family:var(--mono);background:#242226;padding:1px 5px;border-radius:4px;font-size:12.3px;color:var(--orange);
+  }
+  .callout{
+    border-left:3px solid var(--yellow);background:rgba(255,216,102,.06);padding:9px 12px;border-radius:0 6px 6px 0;margin:10px 0;font-size:13px;
+  }
+  .callout b{color:var(--yellow);}
+  .gotcha{
+    border-left:3px solid var(--pink);background:rgba(255,97,136,.07);padding:9px 12px;border-radius:0 6px 6px 0;margin:10px 0;font-size:13px;
+  }
+  .gotcha b{color:var(--pink);}
+
+  /* quiz mode: hide answers behind a reveal */
+  body.quiz .card-a{max-height:0 !important;}
+  body.quiz .card.revealed .card-a{max-height:2200px !important;}
+  body.quiz .card-q .chev{display:none;}
+  body.quiz .card-q::after{content:"reveal";font-family:var(--mono);font-size:10px;color:var(--text-dim);border:1px solid var(--line);padding:3px 8px;border-radius:4px;flex-shrink:0;}
+  body.quiz .card.revealed .card-q::after{content:"hide";color:var(--cyan);border-color:var(--cyan);}
+
+  .hidden{display:none !important;}
+
+  @media (max-width:840px){
+    body{flex-direction:column;}
+    #sidebar{position:relative;width:100%;height:auto;max-height:none;border-right:none;border-bottom:1px solid var(--line);}
+    #main{padding:24px 18px 60px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="brand">MLEG.TECH</div>
+  <div class="brand-title">AI Engineering<br><span>Principal Reference</span></div>
+  <input id="search" type="text" placeholder="Search cards…" oninput="filterCards(this.value)">
+  <div id="nav"></div>
+  <div class="mode-toggle">
+    <button class="mode-btn" id="quizBtn" onclick="toggleQuiz()">◆ FLASHCARD MODE</button>
+    <button class="mode-btn" onclick="expandAll()">▸ EXPAND ALL</button>
+    <button class="mode-btn" onclick="collapseAll()">▾ COLLAPSE ALL</button>
+  </div>
+</div>
+
+<div id="main">
+  <div id="hero">
+    <h1>AI Engineering — Principal-Level Cheat Sheet</h1>
+    <p>Click any card to expand. Toggle flashcard mode in the sidebar to quiz yourself — cards hide their answers until you click "reveal." Use the search box to jump to a keyword mid-interview prep.</p>
+  </div>
+  <div id="content"></div>
+</div>
+
+<script>
+const DATA = [
+{
+  id:"rag", title:"RAG Retrieval Algorithms", color:"#78dce8",
+  cards:[
+    {q:"Dense retrieval vs sparse retrieval (BM25)", a:`
+      <p><b>Dense retrieval</b>: embed query + docs into vectors, rank by cosine/dot-product similarity via ANN index (<code>HNSW</code>, <code>IVF</code>). Captures semantic meaning — "car" matches "automobile."</p>
+      <p><b>Sparse (BM25)</b>: term-frequency-based scoring. Wins on exact keyword/acronym/product-ID matches that embeddings blur together.</p>
+      <div class="callout"><b>Best practice:</b> run both and fuse (hybrid search) — dense alone misses exact terms, sparse alone misses paraphrase. Don't pick one; combine.</div>`},
+    {q:"Hybrid search & Reciprocal Rank Fusion (RRF)", a:`
+      <p>Run dense and sparse retrieval in parallel, then merge ranked lists. <b>RRF</b> scores each doc as <code>Σ 1/(k + rank)</code> across the lists (k≈60), rewarding docs that rank well in either method without needing score normalization — this is why RRF beats naive weighted-score fusion (BM25 and cosine scores live on different scales).</p>`},
+    {q:"Reranking with cross-encoders", a:`
+      <p>Bi-encoders (used for initial retrieval) embed query and doc <i>separately</i> — fast, but no cross-attention between them. A <b>cross-encoder reranker</b> (Cohere Rerank, BGE-reranker) takes the query+doc together through one forward pass, scoring relevance with full attention — much more accurate, much slower.</p>
+      <ul>
+        <li>Retrieve top 50–100 candidates cheaply (bi-encoder/BM25) → rerank down to top 5–10 with cross-encoder.</li>
+        <li>Never rerank your whole corpus — it's O(n) forward passes, only viable on a shortlist.</li>
+      </ul>`},
+    {q:"HyDE (Hypothetical Document Embeddings)", a:`
+      <p>Instead of embedding the raw question, ask the LLM to <i>generate a hypothetical answer</i> first, then embed <i>that</i> and search with it. Closes the vocabulary/phrasing gap between how people ask questions and how answers are actually written in the corpus.</p>
+      <div class="gotcha"><b>Watch out:</b> if the LLM hallucinates a confidently-wrong hypothetical doc, retrieval quality can get worse, not better — validate on your own eval set before shipping.</div>`},
+    {q:"RAG-Fusion & query expansion", a:`
+      <p><b>RAG-Fusion</b>: LLM generates 3–5 reworded variants of the user's query, retrieve for each in parallel, fuse all result sets with RRF. Reduces the chance a single bad query phrasing tanks recall.</p>
+      <p><b>Query rewriting</b>: for conversational RAG, rewrite a follow-up like "what about pricing?" into a standalone query ("What is LogPact's Pro tier pricing?") before retrieval — otherwise the retriever has no idea what "it" refers to.</p>`},
+    {q:"Self-RAG / Corrective RAG (CRAG)", a:`
+      <p>Add a <b>critique step</b>: after retrieval, an LLM (or lightweight classifier) grades whether retrieved chunks are actually relevant/sufficient. If confidence is low, trigger a fallback — re-retrieve with a rewritten query, expand top-k, or fall back to web search — instead of generating from weak context.</p>
+      <div class="callout"><b>Why it matters for interviews:</b> this is the answer to "how do you stop RAG from confidently answering off bad retrieval" — you gate generation on a relevance check, you don't just trust top-k blindly.</div>`},
+    {q:"GraphRAG", a:`
+      <p>Build an entity/relationship graph from the corpus (LLM-extracted triples), then answer multi-hop questions by traversing relationships instead of relying on vector proximity alone. Also supports <b>community summarization</b> — cluster the graph, pre-summarize each cluster, answer "global" questions (e.g. "what are the main themes across all documents?") that pure chunk-retrieval can't answer because no single chunk contains the answer.</p>`},
+    {q:"Maximal Marginal Relevance (MMR)", a:`
+      <p>Diversifies retrieved results — instead of just taking top-k by similarity (which can return 8 near-duplicate chunks), MMR iteratively picks the next doc that maximizes <code>λ·relevance − (1−λ)·max_similarity_to_already_selected</code>. Prevents redundant context from crowding out the token budget.</p>`}
+  ]
+},
+{
+  id:"chunking", title:"Chunking Strategies", color:"#a9dc76",
+  cards:[
+    {q:"Fixed-size vs recursive character splitting", a:`
+      <p><b>Fixed-size</b>: split every N characters/tokens with overlap. Simple, fast, but blind to structure — can cut a sentence in half.</p>
+      <p><b>Recursive character splitting</b>: try splitting on paragraph breaks first, fall back to sentences, then words, then characters — respects natural structure while still guaranteeing a size ceiling. This is the LangChain default for a reason: it's the sane baseline.</p>
+      <div class="callout"><b>Best practice:</b> 200–500 tokens per chunk for QA-style retrieval, with 10–20% overlap so a fact split across a boundary still appears whole in at least one chunk.</div>`},
+    {q:"Semantic chunking", a:`
+      <p>Embed sentences, walk through them, and cut a new chunk boundary wherever cosine similarity between consecutive sentences drops below a threshold — i.e. where the topic actually shifts, not where an arbitrary character count runs out. More coherent chunks, more expensive (an embedding call per sentence at index time).</p>`},
+    {q:"Sentence-window retrieval (small-to-big)", a:`
+      <p>Index and embed <i>individual sentences</i> for precision, but at retrieval time return that sentence plus a window of ±N surrounding sentences (or the whole parent chunk) so the LLM gets context, not an isolated fragment. This is the general <b>parent-document / small-to-big</b> pattern: small units for match precision, larger units for generation context.</p>`},
+    {q:"Structure-aware chunking (markdown / code / tables)", a:`
+      <p>Split on the document's own structural boundaries — markdown headers, code blocks, table rows — rather than blind character counts. Keeps a function definition or a table intact instead of severing it mid-block. Critical for technical docs and codebases.</p>`},
+    {q:"Contextual retrieval (prepend context before embedding)", a:`
+      <p>Anthropic's <b>Contextual Retrieval</b> pattern: before embedding each chunk, use an LLM to prepend 1–2 sentences of document-level context ("this chunk is from the Q3 pricing section of the LogPact pricing doc…"). Fixes the classic failure where a chunk like "the price is $8/mo" is orphaned from what it's the price <i>of</i>. Pair with contextual BM25 too — it improves both retrieval arms.</p>`},
+    {q:"How to actually choose a chunking strategy in an interview answer", a:`
+      <ul>
+        <li>Start with recursive splitting + overlap as the baseline — cheap and hard to get badly wrong.</li>
+        <li>Move to semantic or contextual chunking only if eval shows retrieval failures traced to chunk boundaries (say this explicitly — don't over-engineer day one).</li>
+        <li>Use structure-aware splitting whenever the source has real structure (code, tables, markdown).</li>
+        <li><b>Always tie the choice back to an eval set</b> — "I'd A/B chunking strategies against a golden retrieval eval, not guess" is the principal-level answer.</li>
+      </ul>`}
+  ]
+},
+{
+  id:"vectorgraph", title:"Vector DB vs Graph DB", color:"#ff6188",
+  cards:[
+    {q:"What each is actually good at", a:`
+      <p><b>Vector DB</b> (Pinecone, Weaviate, pgvector): answers "what's semantically similar to this?" It flattens meaning into a point in high-dimensional space — great for unstructured fuzzy matching, blind to explicit relationships between entities.</p>
+      <p><b>Graph DB</b> (Neo4j): stores explicit nodes + typed relationships. Answers "how are these things connected?" and multi-hop questions ("who reports to the person who approved X?") that vector similarity structurally cannot answer, because adjacency in a graph isn't the same thing as semantic similarity in embedding space.</p>`},
+    {q:"When to reach for a graph DB over a vector DB", a:`
+      <ul>
+        <li>The relationships <i>are</i> the answer — org charts, dependency graphs, supply chains, fraud rings, provenance/audit trails.</li>
+        <li>Queries require <b>multi-hop traversal</b> (2+ relationship hops) that would require chaining multiple vector searches with brittle glue logic otherwise.</li>
+        <li>You need <b>explainability</b> — a graph traversal path is a human-readable "why" for the answer; a cosine similarity score is not.</li>
+        <li>The domain has strong inherent structure and referential integrity matters (a Cypher schema enforces relationship types; a vector index does not).</li>
+      </ul>`},
+    {q:"Combining both: hybrid GraphRAG", a:`
+      <p>Use vector search to find semantically relevant entry-point nodes, then traverse the graph from those nodes to pull in connected context the embedding alone would never surface. This is the pattern behind LogPact's "Explore your work" GraphRAG feature — Accomplishment/Skill/Person/Project/Company nodes, vector search for the fuzzy entry point, graph traversal for the structured multi-hop context.</p>
+      <div class="callout"><b>Interview framing:</b> position graph as a <i>switching-cost differentiator</i>, not a moat — be honest that most competitors could rebuild it; the value is in the compounding data model, not the tech being unreplicable.</div>`}
+  ]
+},
+{
+  id:"langgraph", title:"LangGraph & Agent Architecture", color:"#ffd866",
+  cards:[
+    {q:"Core model: StateGraph, nodes, edges", a:`
+      <p>A <code>StateGraph</code> is nodes (functions) connected by edges (control flow) that all read/write a shared, typed <b>State</b> object (TypedDict or Pydantic model) threaded through the whole run. Unlike a linear chain, LangGraph is a graph — it supports <b>cycles</b>, which is what makes ReAct-style reason→act→observe loops and reflection loops possible.</p>`},
+    {q:"Conditional edges & routing", a:`
+      <p>A router node inspects the current state (e.g. the last message, or whether a tool call is present) and returns the name of the next node to run. This is how you implement "call a tool, or answer directly, or hand off to a human" branching without hardcoding a fixed pipeline.</p>`},
+    {q:"Checkpointing & human-in-the-loop", a:`
+      <p>LangGraph persists state at every superstep via a checkpointer (<code>SqliteSaver</code>, <code>PostgresSaver</code>). This gives you: pause/resume across process restarts, <b>time travel</b> (replay from any prior checkpoint), and <code>interrupt_before</code>/<code>interrupt_after</code> to pause execution and require human approval before a sensitive tool call (e.g. sending an email, moving money) fires.</p>`},
+    {q:"Multi-agent patterns: supervisor & subgraphs", a:`
+      <p>Compose complex systems by nesting graphs as subgraphs, or use a <b>supervisor pattern</b>: a top-level router agent delegates to specialist sub-agents (a "research agent," a "writer agent") and decides when the task is done. Keeps each agent's tool set and prompt narrow and reliable instead of one mega-agent with 40 tools.</p>`},
+    {q:"Fan-out / parallel execution: the Send API", a:`
+      <p>The <code>Send</code> primitive lets one node dynamically spawn N parallel executions of another node — a map-reduce pattern (e.g. run the same critique step over 10 retrieved documents in parallel, then reduce). This is exactly where <b>race conditions</b> enter — see that card for how state merges safely.</p>`},
+    {q:"Best practices for LangGraph state design", a:`
+      <ul>
+        <li>Keep state minimal and typed — don't stuff the entire conversation history plus every intermediate artifact into one flat dict.</li>
+        <li>Use <b>reducers</b> (<code>Annotated[list, add]</code> / custom merge functions) to define deterministic merge behavior when parallel branches write to the same key — the default is overwrite, which silently drops concurrent writes.</li>
+        <li>Separate "durable" state (needs to survive a checkpoint) from scratch/ephemeral values passed between adjacent nodes.</li>
+      </ul>`}
+  ]
+},
+{
+  id:"toolcalling", title:"Tool Calling", color:"#78dce8",
+  cards:[
+    {q:"How tool calling actually works under the hood", a:`
+      <ol style="padding-left:19px;margin:0 0 10px;">
+        <li>You send the model a list of tool schemas (name, description, JSON-schema args) alongside the conversation.</li>
+        <li>Instead of free text, the model can emit a structured <b>tool_use</b> block: tool name + arguments matching the schema.</li>
+        <li>Your application code — not the model — executes the actual function against the real world.</li>
+        <li>You serialize the result back as a <b>tool_result</b> message and send the conversation back to the model.</li>
+        <li>Loop continues until the model returns a plain text final answer instead of another tool call.</li>
+      </ol>
+      <div class="callout"><b>Key point for interviews:</b> the model never executes anything itself. It's a structured-output prediction problem — the "agentic" behavior is entirely the orchestration loop you build around it.</div>`},
+    {q:"How to write a good tool definition", a:`
+      <ul>
+        <li>Write the <b>description for the model</b>, not the user — explain exactly when to use it and any edge cases/gotchas, the same way you'd onboard a new engineer.</li>
+        <li>Keep argument schemas minimal and unambiguous — fewer, well-typed args beat a kitchen-sink options object.</li>
+        <li>Return concise, structured results — summaries and IDs, not raw multi-KB payloads (this is a token-budget problem as much as a design one).</li>
+        <li>Name tools by what they <i>do</i>, consistently — the model pattern-matches on names the same way a human developer skims an API.</li>
+      </ul>`},
+    {q:"Error handling & failure modes in tool calling", a:`
+      <p><b>Fail gracefully into the conversation</b> — return the error as a tool result string the model can read and adapt to (retry with different args, try a different tool, or tell the user it can't proceed), rather than throwing and crashing the loop.</p>
+      <div class="gotcha"><b>Common gotcha:</b> validate arguments server-side even though they should already match the schema — models occasionally emit malformed or out-of-range values, and you don't want a bad arg reaching a real side-effecting system unchecked.</div>`},
+    {q:"Scaling tool selection (too many tools problem)", a:`
+      <p>Model tool-selection accuracy degrades as the tool list grows — past roughly 15–20 tools in one call, confusion and wrong-tool selection rises. Fixes: namespace/group tools clearly, or do <b>dynamic tool loading</b> — retrieve/inject only the tools relevant to the current task turn (this is literally how the tool_search pattern in this very system works).</p>`},
+    {q:"Pydantic's role in tool calling", a:`
+      <p>Define tool argument schemas as Pydantic models — you get the JSON schema for the model "for free" via <code>model_json_schema()</code>, plus runtime validation and clean error messages when a call comes back malformed, plus IDE type safety in the handler code that executes the call.</p>`}
+  ]
+},
+{
+  id:"race", title:"Race Conditions in Agentic Systems", color:"#ff6188",
+  cards:[
+    {q:"Where race conditions actually show up", a:`
+      <ul>
+        <li><b>Parallel tool calls writing to shared state</b> — two branches both append/overwrite the same state key in the same superstep.</li>
+        <li><b>Fan-out/fan-in (map-reduce) patterns</b> — N parallel branches all trying to merge results into one key with no defined merge order.</li>
+        <li><b>Async agents touching external systems</b> — two concurrent tool calls both read-modify-write the same external resource (e.g. both check "is this slot free?" then both book it → double-booking).</li>
+        <li><b>Retry + side effects</b> — a tool call that has a real-world side effect (charge a card, send an email) gets retried after a timeout, but the first call actually succeeded → duplicate execution.</li>
+        <li><b>Streaming + cancellation</b> — a user cancels/interrupts mid-stream while a checkpoint write or tool call is still in flight.</li>
+      </ul>`},
+    {q:"Mitigation: reducers over last-write-wins", a:`
+      <p>In LangGraph, the default merge behavior for concurrent writes to a state key is overwrite — silently dropping one branch's output. Define an explicit <b>reducer</b> (<code>Annotated[list, operator.add]</code> or a custom merge function) so concurrent writes have deterministic, intentional semantics (append, dedupe-and-merge, take-max, etc.) instead of a race.</p>`},
+    {q:"Mitigation: idempotency for side-effecting tools", a:`
+      <p>Assume tool execution is <b>at-least-once delivery</b>, not exactly-once — network blips and retries will cause a call to sometimes fire twice. Design any side-effecting tool (payments, bookings, sends) to accept an <b>idempotency key</b> so a duplicate call is a safe no-op, not a duplicate charge.</p>
+      <div class="callout"><b>This is the answer interviewers actually want:</b> "I design for at-least-once delivery with idempotency keys" signals production experience, not just theoretical LangGraph knowledge.</div>`},
+    {q:"Mitigation: locking & transactional patterns", a:`
+      <ul>
+        <li><b>Optimistic locking / versioning</b> on external resources the agent modifies — reject the write if the version changed underneath it, force a re-read-and-retry.</li>
+        <li><b>Distributed locks</b> (Redis) when multiple agent processes/workers could touch the same resource concurrently.</li>
+        <li><b>Single-writer / actor model</b> for state that must be strictly sequential — route all writes to one owner instead of letting N branches write directly.</li>
+        <li><b>Transactional outbox pattern</b> for tool calls that must be exactly-once with respect to an external system of record.</li>
+      </ul>`}
+  ]
+},
+{
+  id:"langsmith", title:"LangSmith Tracing — What to Look For", color:"#a9dc76",
+  cards:[
+    {q:"Latency waterfall", a:`
+      <p>Look at the span breakdown per run: is time going into the LLM call itself, retrieval, or a downstream tool/API? A slow agent is very often a slow <i>tool</i>, not a slow model — the trace tells you where to actually optimize instead of guessing.</p>`},
+    {q:"Token usage per step", a:`
+      <p>Per-span token counts surface prompt bloat, context stuffing (huge retrieved context that barely helped), and runaway loops that keep re-appending history. This is your primary signal for token-budget problems in production, not a guess from the bill at month end.</p>`},
+    {q:"Tool call arguments and results", a:`
+      <p>Inspect what the model actually passed as arguments — this is where you catch the model hallucinating a plausible-looking but wrong parameter (a made-up ID, a wrong date format) that a shallow "did the tool run" check would miss entirely.</p>`},
+    {q:"Loop iteration count / retries", a:`
+      <p>An agent stuck cycling through the same tool repeatedly is almost always a sign of a bad tool description (model doesn't understand when it's "done"), a missing stop condition, or a tool returning ambiguous results the model can't act on. High iteration count is a debugging signal, not just a cost signal.</p>`},
+    {q:"Retrieved documents (RAG traces)", a:`
+      <p>Eyeball what actually got retrieved for a failing query. <b>Low relevance in the trace means a retrieval problem — fix chunking/embeddings/reranking — not a generation problem.</b> This distinction is the single most common thing engineers get wrong: they tune the prompt when the real bug is upstream in retrieval.</p>`},
+    {q:"Errors, silent failures, and orphaned spans", a:`
+      <ul>
+        <li>Exceptions that got swallowed by a try/except instead of surfacing in the trace.</li>
+        <li><b>Silent context-window truncation</b> — content quietly cut instead of erroring, producing subtly wrong answers with no visible failure.</li>
+        <li>Tool schema mismatches (model calling with args that don't match what's registered).</li>
+        <li>Orphaned spans — an async task that was fired but never awaited/joined back into the trace.</li>
+      </ul>`},
+    {q:"Feedback, scores, and dataset-based evals", a:`
+      <p>Attach feedback (thumbs up/down, programmatic eval scores) to runs so you can filter traces by outcome and find the actual failure pattern instead of eyeballing randomly. Use LangSmith datasets to run the same eval set against a prompt/model change before shipping — this is the CI regression gate for prompt changes.</p>`}
+  ]
+},
+{
+  id:"hallucination", title:"Troubleshooting Hallucinations", color:"#ff6188",
+  cards:[
+    {q:"Step 1: diagnose which stage is actually failing", a:`
+      <p>Before touching anything, use the trace to isolate the failure to one of three stages — the fix is completely different for each:</p>
+      <ul>
+        <li><b>Retrieval failure</b> — the right document was never fetched in the first place.</li>
+        <li><b>Grounding failure</b> — the right document <i>was</i> fetched, but the model ignored it and answered from parametric memory instead.</li>
+        <li><b>Generation/fabrication failure</b> — the model extrapolated beyond what the context actually supports.</li>
+      </ul>`},
+    {q:"Fixing retrieval-stage hallucinations", a:`
+      <p>Better chunking (semantic/contextual), hybrid search instead of dense-only, add a reranker, increase top-k, or add query rewriting for conversational context. If the source document was never retrieved, no prompting trick downstream will fix the answer.</p>`},
+    {q:"Fixing grounding-stage hallucinations", a:`
+      <ul>
+        <li>Explicit system-prompt constraint: "answer only using the provided context; if the answer isn't in the context, say so."</li>
+        <li><b>Citation-forcing</b> — require the model to tag each claim with a source chunk ID. This structurally forces grounding because an ungroundable claim has no citation to attach.</li>
+        <li>Lower temperature for factual/extraction tasks.</li>
+        <li>Structured output schema requiring a <code>source_id</code> field per claim (Pydantic-enforced) — makes ungrounded claims a validation failure, not just a vibe.</li>
+      </ul>`},
+    {q:"Fixing generation/fabrication hallucinations", a:`
+      <ul>
+        <li><b>LLM-as-judge faithfulness eval</b> — a second model checks whether every claim in the answer traces back to the source context.</li>
+        <li><b>Self-consistency</b> — sample the answer N times at nonzero temperature; disagreement across samples flags low-confidence/fabricated claims.</li>
+        <li><b>Chain-of-Verification</b> — have the model generate an answer, then separately ask it to verify each claim against the context before finalizing.</li>
+        <li>Explicitly allow "I don't know" as a valid answer in the prompt — models over-hallucinate partly because they're implicitly rewarded for always producing something.</li>
+      </ul>`},
+    {q:"Making it continuous, not one-time", a:`
+      <p>Wire faithfulness/answer-relevancy metrics (Ragas, DeepEval) into a golden eval set that regression-gates in CI — no prompt or model change ships without passing the eval set first. This is the difference between "we fixed a hallucination" and "we can't regress this class of hallucination again."</p>`}
+  ]
+},
+{
+  id:"tokens", title:"Token Budget Management", color:"#ffd866",
+  cards:[
+    {q:"Budget it as line items, not one number", a:`
+      <p>Break the context window into explicit reserved segments — system prompt, tool schemas, few-shot examples, retrieved context, conversation history, and reserved output tokens — and track each independently. "We have 200K tokens" is not a budget; knowing retrieved-context is eating 60% of it is.</p>`},
+    {q:"The 'lost in the middle' effect", a:`
+      <p>Model attention degrades on information buried in the middle of a long context — recall is strongest near the start and end. <b>Bigger context ≠ better answers.</b> A tightly-curated top-5 retrieval often outperforms a sloppy top-50 stuffed into context. Optimize for relevance density, not maximum inclusion.</p>`},
+    {q:"Techniques to stay within budget", a:`
+      <ul>
+        <li><b>Conversation summarization / sliding window</b> for long chat sessions instead of appending full history forever.</li>
+        <li>Tune retrieval top-k to what the budget can actually hold well, not the max the vector DB will return.</li>
+        <li><b>Truncate tool results</b> — return summaries/IDs from tools, not raw multi-KB payloads (ties directly back to the tool-design card).</li>
+        <li><b>Prompt caching</b> (Anthropic prompt caching) for large static context (system prompt, tool schemas, reference docs) reused across calls — cuts both cost and latency on the repeated portion.</li>
+        <li><b>Dynamic tool loading</b> — only inject schemas for tools relevant to the current turn instead of dumping the entire tool catalog into every call.</li>
+      </ul>`},
+    {q:"Monitoring in production", a:`
+      <p>Track tokens-per-call and cost-per-conversation in LangSmith (or equivalent), not just aggregate monthly spend — per-call visibility is what lets you catch a single misbehaving prompt path before it becomes a line item on the invoice. Set budget alerts at the call level.</p>`}
+  ]
+},
+{
+  id:"pydantic", title:"Pydantic — Pros & Cons", color:"#78dce8",
+  cards:[
+    {q:"Where Pydantic earns its place in an AI stack", a:`
+      <ul>
+        <li><b>Runtime validation & coercion</b> at the exact boundary where untrusted LLM output enters your system — this is the single biggest reason to use it here, more than in typical backend code.</li>
+        <li><b>Self-documenting schemas</b> — <code>model_json_schema()</code> generates the JSON schema for tool-calling and structured outputs directly from the model definition; one source of truth instead of hand-maintained JSON schema drifting from the code.</li>
+        <li>Native fit with LangGraph state, LangChain output parsers, and Instructor-style structured extraction.</li>
+        <li>Custom validators enforce business rules at the boundary (field constraints, cross-field checks) — catches a malformed LLM response before it propagates.</li>
+        <li>Clear, structured validation errors make debugging malformed model output far faster than parsing a raw JSON.loads failure.</li>
+        <li>Pydantic v2's Rust core closed most of the historical performance gap vs plain dataclasses.</li>
+      </ul>`},
+    {q:"Where it costs you", a:`
+      <ul>
+        <li>Still measurable overhead vs plain dicts/dataclasses at very high call volume — usually not the bottleneck compared to an LLM round-trip, but worth knowing it's not free.</li>
+        <li>Can tempt you into over-rigid schemas for output that's inherently fuzzy — forcing every LLM response into a strict model sometimes fights the task instead of helping it.</li>
+        <li>Schema evolution/versioning friction — changing a model's shape means migrating every place that constructs or consumes it.</li>
+        <li>Deeply nested model validation errors can be verbose and annoying to parse programmatically.</li>
+        <li>Couples business/domain logic to a specific library's conventions if validators aren't kept thin.</li>
+      </ul>
+      <div class="callout"><b>Principal-level framing:</b> the right answer isn't "always use Pydantic" — it's "use it at trust boundaries (tool args, structured LLM output, API contracts) and stay lighter-weight in the hot internal path."</div>`}
+  ]
+},
+{
+  id:"guardrails", title:"Guardrails & AI Governance", color:"#fc9867",
+  cards:[
+    {q:"The three layers of guardrails", a:`
+      <ul>
+        <li><b>Input guardrails</b> — run before the prompt reaches the model: prompt-injection detection, jailbreak detection, PII/secret redaction, topic/scope restriction (reject off-domain requests before they burn a call).</li>
+        <li><b>Behavioral guardrails</b> — constrain what the model/agent is allowed to <i>do</i> mid-run: tool allow-lists per context, spend/rate limits, requiring human approval before high-risk tool calls (see LangGraph <code>interrupt_before</code>).</li>
+        <li><b>Output guardrails</b> — run after generation: content moderation, toxicity/PII-leakage filters, structured-output/schema validation, factuality/faithfulness checks against source context.</li>
+      </ul>
+      <div class="callout"><b>Principal framing:</b> guardrails are defense-in-depth, not a single filter — assume any one layer can be bypassed and design so the next layer still catches it.</div>`},
+    {q:"Prompt injection & jailbreak defense", a:`
+      <p>Treat any retrieved document, tool result, or user-uploaded file as <b>untrusted input that can contain instructions</b> — an injected "ignore previous instructions" string in a scraped webpage is the same class of risk as user input. Mitigations: instruction-hierarchy-aware prompting (explicitly tell the model retrieved content is data, not instructions), input classifiers for known injection patterns, sandboxing tool execution so even a successfully-injected instruction can't reach a high-privilege action without a separate approval gate.</p>`},
+    {q:"Output validation & structured guardrails", a:`
+      <p>Enforce a schema (Pydantic/JSON-schema) on structured outputs so a malformed or out-of-policy response fails validation instead of silently propagating. For open-ended text, run a lightweight classifier or LLM-as-judge pass for toxicity, PII leakage, and policy compliance before the response reaches the user — same pattern as the faithfulness check used for hallucination detection.</p>
+      <div class="gotcha"><b>Common gap:</b> teams guardrail the final answer but forget intermediate tool arguments and tool results can also leak PII or carry injected instructions forward into later steps.</div>`},
+    {q:"Guardrails frameworks worth knowing", a:`
+      <p><code>NeMo Guardrails</code> (NVIDIA) — programmable rails via Colang for topic/behavior control. <code>Guardrails AI</code> — Pydantic-style validators for LLM output with auto-retry on failure. <code>Llama Guard</code> — a purpose-built classifier model for content-safety moderation. In practice, many production systems roll a lighter custom LLM-as-judge classifier tuned to their own policy rather than adopting a full framework — know both options and the tradeoff (speed/control of custom vs. maintained coverage of a framework).</p>`},
+    {q:"AI governance — what it covers beyond guardrails", a:`
+      <ul>
+        <li><b>Audit trails</b> — every agent action, tool call, and decision logged and traceable back to the run that produced it (this is what your LangSmith traces double as).</li>
+        <li><b>Human-in-the-loop gates</b> for high-stakes/irreversible actions — required approval before the action fires, not just logged after.</li>
+        <li><b>Explainability</b> — can you show <i>why</i> the system produced an output (retrieved sources, graph traversal path, reasoning trace), not just that it did.</li>
+        <li><b>Model risk management</b> — versioning which model/prompt combination produced a given output, and the ability to roll back.</li>
+        <li><b>Data governance</b> — provenance of training/fine-tuning data, retention policy for logged conversations, PII handling in stored traces.</li>
+      </ul>`},
+    {q:"Regulatory frameworks to be conversant in", a:`
+      <p><b>NIST AI Risk Management Framework (AI RMF)</b> — voluntary US framework organized around Govern/Map/Measure/Manage functions. <b>EU AI Act</b> — risk-tiered regulation (unacceptable/high/limited/minimal risk categories) with the strictest obligations on high-risk systems (transparency, human oversight, documentation). You don't need legal-level depth, but you should be able to say which risk tier your system likely falls into and what obligations that implies — auditability and human oversight are the two threads that show up across almost every framework.</p>`}
+  ]
+},
+{
+  id:"agents", title:"Agents: Single vs Multi-Agent & the Supervisor Pattern", color:"#78dce8",
+  cards:[
+    {q:"When a single agent is enough", a:`
+      <ul>
+        <li>The task is narrow and well-defined — one coherent job, not several distinct specialties.</li>
+        <li>Tool set is small enough for reliable selection (roughly under 15–20 tools) — see the tool-calling card on why this ceiling exists.</li>
+        <li>No need for different models/prompts/temperatures tuned per sub-task.</li>
+        <li>Context doesn't need isolation — everything relevant fits coherently in one conversation without one part polluting another.</li>
+      </ul>
+      <div class="callout"><b>Default posture:</b> start single-agent. Multi-agent adds orchestration complexity, more failure points, and extra LLM hops (latency + cost) — only decompose once you have concrete evidence it's needed, not because multi-agent sounds more sophisticated.</div>`},
+    {q:"Signals that you actually need multi-agent", a:`
+      <ul>
+        <li>The task naturally decomposes into distinct specialist roles (e.g. a research agent, a coding agent, a writing agent) that benefit from different system prompts, tools, or even different underlying models.</li>
+        <li>Tool set has grown too large/heterogeneous for one model to reliably pick from — splitting by domain narrows each agent's tool list back down.</li>
+        <li>You need real <b>parallelism</b> — independent sub-tasks that can run concurrently and get fanned back in (map-reduce style).</li>
+        <li>You need <b>context isolation</b> — one agent's exploratory/noisy reasoning shouldn't bloat or distract another agent's context window.</li>
+        <li>Different sub-tasks have conflicting optimal settings (e.g. creative writing wants higher temperature, data extraction wants near-zero).</li>
+      </ul>`},
+    {q:"What the supervisor agent actually does", a:`
+      <p>The supervisor is a top-level agent that <b>does no domain work itself</b> — its job is orchestration:</p>
+      <ul>
+        <li>Interprets the incoming task and decides which specialist sub-agent(s) should handle it.</li>
+        <li>Routes/delegates work to sub-agents (often via LangGraph subgraphs or the <code>Send</code> fan-out API).</li>
+        <li>Aggregates and synthesizes sub-agent outputs into one coherent response.</li>
+        <li>Decides when the overall task is complete vs. needs another round of delegation.</li>
+        <li>Handles error recovery — if a specialist fails or returns low-confidence output, the supervisor decides whether to retry, re-route to a different specialist, or escalate to a human.</li>
+        <li>Owns the overall conversation/task state so individual specialists can stay narrowly scoped.</li>
+      </ul>
+      <div class="callout"><b>Interview framing:</b> "the supervisor is a router + synthesizer, not a smarter agent" — its prompt is about delegation and judgment of completeness, not domain expertise.</div>`},
+    {q:"Multi-agent tradeoffs to be honest about", a:`
+      <p>More agents means more LLM round-trips (latency and cost compound), more places for a race condition or state-merge bug to hide (see the race-conditions card), and a harder debugging surface — a trace now spans multiple agents instead of one linear run. Multi-agent is a real cost you pay for decomposition benefits, not a free architectural upgrade; say this explicitly in an interview to signal you've actually shipped one, not just read about the pattern.</p>`}
+  ]
+},
+{
+  id:"mcp", title:"MCP — Model Context Protocol", color:"#a9dc76",
+  cards:[
+    {q:"What MCP is and the problem it solves", a:`
+      <p>MCP is an open protocol (Anthropic) for connecting AI applications to external tools, data sources, and systems through a standardized interface. Before MCP, every AI app wrote custom integration code for every tool/data source it wanted to use — an <b>M×N integration problem</b> (M apps × N tools = M×N custom integrations). MCP turns it into an <b>M+N problem</b>: a tool builder implements one MCP server, and any MCP-compatible client can use it without custom glue code.</p>`},
+    {q:"Client-server architecture & core primitives", a:`
+      <ul>
+        <li><b>MCP Server</b> — exposes capabilities to any connected client over a standardized JSON-RPC interface: <b>Tools</b> (callable functions the model can invoke), <b>Resources</b> (data/content the model can read, like files or DB records), and <b>Prompts</b> (reusable prompt templates the server offers).</li>
+        <li><b>MCP Client</b> — the AI application (Claude, an IDE, a custom agent) that discovers what a connected server offers and calls into it.</li>
+        <li><b>Transport</b> — <code>stdio</code> for local processes, <code>SSE</code>/streamable HTTP for remote servers.</li>
+      </ul>`},
+    {q:"MCP vs plain function calling", a:`
+      <p>Plain function calling is app-to-model glue you write yourself, inside one process, specific to one integration. <b>MCP is a protocol layer above that</b> — it standardizes how any client discovers and calls tools from any server, so the same server works across different AI apps/vendors without rewriting integration code per client. Function calling is the mechanism; MCP is the portable, standardized way of wiring that mechanism up to external systems at scale.</p>`},
+    {q:"Where MCP fits in a production stack", a:`
+      <p>Use MCP when you want tool/data integrations that are reusable across multiple AI clients or teams (e.g. a company-wide "internal-docs MCP server" that any internal agent can plug into), or when you're consuming third-party integrations someone else maintains (this session's own tool_search / connector pattern is an MCP-based example). For a single bespoke internal agent with tools nobody else will ever reuse, plain function calling is often simpler and has less operational overhead — don't reach for a protocol you don't need the portability of.</p>`}
+  ]
+},
+{
+  id:"a2a", title:"A2A — Agent2Agent Protocol", color:"#ffd866",
+  cards:[
+    {q:"What A2A is and how it differs from MCP", a:`
+      <p>A2A (Agent2Agent, Google-led open protocol) standardizes <b>agent-to-agent</b> communication and interoperability across different frameworks and vendors — one agent can discover another agent's capabilities and delegate a task to it, even if that agent is built on a completely different stack.</p>
+      <div class="callout"><b>The one-line distinction interviewers want to hear:</b> <b>MCP = agent to tool/data. A2A = agent to agent.</b> They're complementary layers, not competitors — a single system can use MCP for its own tool access and A2A to talk to peer agents outside its control.</div>`},
+    {q:"Core concepts: Agent Card & Task", a:`
+      <ul>
+        <li><b>Agent Card</b> — a published, machine-readable capability manifest: what this agent can do, what inputs it expects, how to reach it. Lets a calling agent discover capabilities without out-of-band documentation.</li>
+        <li><b>Task</b> — a unit of work delegated from one agent to another, with a defined lifecycle (submitted → working → completed/failed), plus messages and artifacts exchanged during the collaboration so the calling agent can track progress on long-running delegated work.</li>
+      </ul>`},
+    {q:"Why this matters at an org/architecture level", a:`
+      <p>Without a shared protocol, cross-team or cross-vendor agent collaboration means bespoke point-to-point integration for every pair of agents that need to talk — the same M×N problem MCP solved for tools, now one level up at the agent layer. A2A lets, say, an internal HR agent delegate a question to a separate expense-management agent built by another team on a different framework, without either team needing to know the other's internal implementation — only the published Agent Card and Task contract.</p>`}
+  ]
+}
+];
+
+const nav = document.getElementById('nav');
+const content = document.getElementById('content');
+
+DATA.forEach(sec=>{
+  const navItem = document.createElement('div');
+  navItem.className='nav-item';
+  navItem.dataset.target = sec.id;
+  navItem.innerHTML = `<span class="nav-dot" style="background:${sec.color}"></span>${sec.title}`;
+  navItem.onclick = ()=>document.getElementById('sec-'+sec.id).scrollIntoView({behavior:'smooth',block:'start'});
+  nav.appendChild(navItem);
+
+  const section = document.createElement('div');
+  section.className='section';
+  section.id='sec-'+sec.id;
+  const head = document.createElement('div');
+  head.className='section-head';
+  head.innerHTML = `<h2>${sec.title}</h2><span class="tag" style="background:${sec.color}">${sec.cards.length} cards</span>`;
+  section.appendChild(head);
+
+  sec.cards.forEach((c,i)=>{
+    const card = document.createElement('div');
+    card.className='card';
+    card.dataset.search = (c.q + ' ' + c.a).toLowerCase();
+    card.innerHTML = `
+      <div class="card-q" onclick="toggleCard(this.parentElement)">
+        <span>${c.q}</span><span class="chev">▶</span>
+      </div>
+      <div class="card-a"><div class="card-a-inner">${c.a}</div></div>`;
+    section.appendChild(card);
+  });
+  content.appendChild(section);
+});
+
+function toggleCard(card){
+  if(document.body.classList.contains('quiz')){
+    card.classList.toggle('revealed');
+  } else {
+    card.classList.toggle('open');
+  }
+}
+function toggleQuiz(){
+  document.body.classList.toggle('quiz');
+  document.getElementById('quizBtn').classList.toggle('on');
+  document.querySelectorAll('.card').forEach(c=>{c.classList.remove('open');c.classList.remove('revealed');});
+}
+function expandAll(){
+  document.body.classList.remove('quiz');
+  document.getElementById('quizBtn').classList.remove('on');
+  document.querySelectorAll('.card').forEach(c=>c.classList.add('open'));
+}
+function collapseAll(){
+  document.querySelectorAll('.card').forEach(c=>{c.classList.remove('open');c.classList.remove('revealed');});
+}
+function filterCards(q){
+  q = q.trim().toLowerCase();
+  document.querySelectorAll('.section').forEach(sec=>{
+    let anyVisible = false;
+    sec.querySelectorAll('.card').forEach(card=>{
+      const match = !q || card.dataset.search.includes(q);
+      card.classList.toggle('hidden', !match);
+      if(match) anyVisible = true;
+      if(match && q) card.classList.add('open');
+    });
+    sec.classList.toggle('hidden', !anyVisible);
+  });
+}
+
+// scrollspy for nav highlight
+const sections = DATA.map(s=>document.getElementById('sec-'+s.id));
+window.addEventListener('scroll', ()=>{
+  let current = sections[0].id;
+  sections.forEach(s=>{ if(window.scrollY + 80 >= s.offsetTop) current = s.id; });
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    n.classList.toggle('active', 'sec-'+n.dataset.target === current);
+  });
+});
+</script>
+</body>
+</html>
